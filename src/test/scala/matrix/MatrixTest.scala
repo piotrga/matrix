@@ -186,7 +186,7 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
   }
 
   it should  "calculate sum of columns" in {
-    sum(Matrix((1,2), (3,4), (5,6))) should be(Matrix((9, 12)))
+    sum(Matrix((1,2), (3,4), (5,6))) should be(RowVector(9, 12))
   }
 
   it should  "calculate sum of one row matrix" in {

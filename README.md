@@ -1,15 +1,14 @@
 ## Matrix creation:
 
-$ val X = Matrix( (1,2,3),
-$                (4,5,6),
-$                (7,8,9))
-$
-$ val Y = Matrix( (1,2,3),
-$                (4,5,6),
-$                (7,8,9))
-$
-$ val y = Vector(1,2,3,4,5,6)
-$ val z = RowVector(8,9,10,11)]]
+    val X = Matrix( (1,2,3),
+                    (4,5,6),
+                    (7,8,9))
+
+    val Y = Matrix( (1,2,3),
+                    (4,5,6),
+                    (7,8,9))
+    val y = Vector(1,2,3,4,5,6)
+    val z = RowVector(8,9,10,11)]]
 
 ## Matrix x Matrix operations:
 

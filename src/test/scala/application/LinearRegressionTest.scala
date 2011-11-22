@@ -20,20 +20,20 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
     val alpha = 1.0
 
     def cost(X: Matrix, y: Vector, theta: Vector) : Double = {
+      val m = X.rows
       val diff =   X * theta - y
-      val value = (diff.T * diff).toScalar / (2.0 * theta.rows)
-      val reg = sum(theta.T.dropFirstColumn).toScalar * lambda/(2*theta.rows)
-//      println("Value=" + value)
+      val value = (diff.T * diff).toScalar / (2.0 * m)
+      val reg = sum(theta.T.dropFirstColumn).toScalar * lambda / (2 * m)
       value + reg
 
     }
 
     def gradient(X: Matrix, y: Vector, theta: Vector) : RowVector = {
+      val m = X.rows
       val diff = X * theta  - y
-      val grad : RowVector = ((diff.T * X) / (alpha/theta.rows))
-      val theta2 = (0 :: theta.T.dropFirstColumn)
-      val reg = theta2 * lambda / theta.rows
-      grad + reg
+      val grad : RowVector = ((diff.T * X) * (alpha / m))
+      val regularization = (0 :: theta.T.dropFirstColumn) * lambda / m
+      grad + regularization
     }
 
   }
@@ -42,14 +42,15 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
   "Linear regression" should "find theta" in {
     val features = toFeatures(X)
 //    println("Features="+features)
+
     val solution = new LinearRegression(J).findSolution(features, y)
-    val range = Vector((0.0 to 50.0).by(5).toArray)
+    val range = Vector((0.0 to 45.0).by(2.5).toArray)
     val example = toFeatures(range)
 
     val estimation = solution(example)
     println(range :: estimation)
 
-    estimation(3,0) should be ( -0.2354682798481262 plusOrMinus 0.000001)
+    estimation(3,0) should be (  -1.3389483845601906 plusOrMinus 0.000001)
 
   }
 

@@ -26,7 +26,7 @@ class MatrixMultiplicationTest extends FlatSpec with ShouldMatchers{
 
     val M2 = random(250, 10, 1)
     //    implicit val multiplication = mult1 _
-    val TIMES = 1000
+    val TIMES = 100
 
     println("Time per multiplication= "+ time{
       (1 to TIMES).foreach(_ =>M * M1 * M2)

@@ -158,4 +158,4 @@
 
 
 
-For more documentation check out [MatrixTest.scala|https://github.com/piotrga/matrix/blob/master/src/test/scala/matrix/MatrixTest.scala]
+For more documentation check out [MatrixTest.scala](https://github.com/piotrga/matrix/blob/master/src/test/scala/matrix/MatrixTest.scala)

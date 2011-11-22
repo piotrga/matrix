@@ -1,6 +1,6 @@
-Matrix creation:
+## Matrix creation:
 ----------------
-val X = Matrix( (1,2,3),
+[[val X = Matrix( (1,2,3),
                 (4,5,6),
                 (7,8,9))
 
@@ -9,67 +9,71 @@ val Y = Matrix( (1,2,3),
                 (7,8,9))
 
 val y = Vector(1,2,3,4,5,6)
-val z = RowVector(8,9,10,11)
+val z = RowVector(8,9,10,11)]]
 
-Matrix x Matrix operations:
+## Matrix x Matrix operations:
 ---------------------------
 
-scala> X*Y
+[[scala> X*Y
 res0: matrix.MatrixLike =
 Matrix(3x3):
        30        36        42
        66        81        96
       102       126       150
+  ]]
 
-
-scala> X+Y
+[[scala> X+Y
 res1: matrix.MatrixLike =
 Matrix(3x3):
         2         4         6
         8        10        12
        14        16        18
-
-scala> X-Y
+  ]]
+[[scala> X-Y
 res2: matrix.MatrixLike =
 Matrix(3x3):
       0.0       0.0       0.0
       0.0       0.0       0.0
       0.0       0.0       0.0
+  ]]
 
-scala> X::Y
+[[scala> X::Y
 res3: matrix.Matrix =
 Matrix(3x6):
         1         2         3         1         2         3
         4         5         6         4         5         6
         7         8         9         7         8         9
+]]
 
-Operations on corresponding elements:
+## Operations on corresponding elements:
 -------------------------------------
-scala> X@*Y
+
+[[scala> X@*Y
 res5: matrix.MatrixLike =
 Matrix(3x3):
         1         4         9
        16        25        36
        49        64        81
+]]
 
-scala> X@/Y
+[[scala> X@/Y
 res6: matrix.MatrixLike =
 Matrix(3x3):
         1         1         1
         1         1         1
         1         1         1
+]]
 
-
-Matrix x Scalar operations:
+## Matrix x Scalar operations:
 ---------------------------
 
-scala> 1/X
+[[scala> 1/X
 res4: matrix.MatrixLike =
 Matrix(3x3):
         1       0.5  0.333333
      0.25       0.2  0.166667
  0.142857     0.125  0.111111
-
+]]
 
 scala> 2 * X
 res8: matrix.MatrixLike =

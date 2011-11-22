@@ -16,6 +16,8 @@ package object matrix {
   class MatrixOps(d:Double){
     def *(m:Matrix) = m * d
     def /(m:Matrix) = m(d/_)
+    def +(m:Matrix) = m + d
+    def -(m:Matrix) = m(d - _)
   }
 
 

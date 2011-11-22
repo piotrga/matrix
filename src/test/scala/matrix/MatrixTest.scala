@@ -50,11 +50,20 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
       ( 0, 1))))
   }
 
+  it should "be substracted from scalar" in{
+
+    (1 - Y).should( be(Matrix(
+      ( 0, -1),
+      ( 0, -1))))
+  }
+
   it should "add scalar" in{
 
     (Y + 1).should( be(Matrix(
-      ( 2, 3),
-      ( 2, 3))))
+      (2, 3),
+      (2, 3))))
+
+    (1 + Y).should( be(Y+1))
   }
 
   it should "be multiplied by scalar: Y * 2" in{

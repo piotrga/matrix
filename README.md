@@ -14,7 +14,7 @@
 ## Matrix x Matrix operations:
 
 ### Multiplication
-Multiplication is done using parallel algorihtm, and it is 5 times faster than Apache commons-math-1.2 implementation.
+Multiplication is done using parallel algorithm, and it is 5 times faster than Apache commons-math-1.2 implementation.
 
     scala> X*Y
     res0: matrix.MatrixLike =

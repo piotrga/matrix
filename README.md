@@ -1,18 +1,17 @@
 ## Matrix creation:
-----------------
-[[val X = Matrix( (1,2,3),
-                (4,5,6),
-                (7,8,9))
 
-val Y = Matrix( (1,2,3),
-                (4,5,6),
-                (7,8,9))
-
-val y = Vector(1,2,3,4,5,6)
-val z = RowVector(8,9,10,11)]]
+$ val X = Matrix( (1,2,3),
+$                (4,5,6),
+$                (7,8,9))
+$
+$ val Y = Matrix( (1,2,3),
+$                (4,5,6),
+$                (7,8,9))
+$
+$ val y = Vector(1,2,3,4,5,6)
+$ val z = RowVector(8,9,10,11)]]
 
 ## Matrix x Matrix operations:
----------------------------
 
 [[scala> X*Y
 res0: matrix.MatrixLike =
@@ -46,26 +45,22 @@ Matrix(3x6):
 ]]
 
 ## Operations on corresponding elements:
--------------------------------------
 
-[[scala> X@*Y
-res5: matrix.MatrixLike =
-Matrix(3x3):
-        1         4         9
-       16        25        36
-       49        64        81
-]]
+$ scala> X@*Y
+$ res5: matrix.MatrixLike =
+$ Matrix(3x3):
+$         1         4         9
+$        16        25        36
+$        49        64        81
 
-[[scala> X@/Y
-res6: matrix.MatrixLike =
-Matrix(3x3):
-        1         1         1
-        1         1         1
-        1         1         1
-]]
+$ scala> X@/Y
+$ res6: matrix.MatrixLike =
+$ Matrix(3x3):
+$         1         1         1
+$         1         1         1
+$         1         1         1
 
 ## Matrix x Scalar operations:
----------------------------
 
 [[scala> 1/X
 res4: matrix.MatrixLike =

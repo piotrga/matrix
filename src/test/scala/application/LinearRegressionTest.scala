@@ -1,7 +1,6 @@
 package application
 
 import matrix._
-import matrix.Matrix.arrayToVector
 import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 
@@ -10,20 +9,23 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
   val X = Vector(  8,  15.0,  20,  25,   30,    35,    40,   45)
   val y = Vector( -2,  -0.3, 0.4, 0.1,  0.0, -0.25, -0.75, -1.0)
 
-  def toFeatures(X : MatrixLike) = {
+  def toFeatures(X : Matrix) = {
     (X@^2) :: (X@^3) :: (X@^4) :: (X @^6) :: (X@^1) :: (X@^7) :: X(math.log) :: X(math.cos)
   }
 
 
   val J = new CostFunction {
+
+
+
     val lambda = 1.0
     val alpha = 1.0
 
     def cost(X: Matrix, y: Vector, theta: Vector) : Double = {
       val m = X.rows
       val diff =   X * theta - y
-      val value = (diff.T * diff).toScalar / (2.0 * m)
-      val reg = sum(theta.T.dropFirstColumn).toScalar * lambda / (2 * m)
+      val value  = diff.T * diff / (2 * m)
+      val reg = sum(theta.T.dropFirstColumn) * lambda / (2 * m)
       value + reg
 
     }
@@ -31,7 +33,7 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
     def gradient(X: Matrix, y: Vector, theta: Vector) : RowVector = {
       val m = X.rows
       val diff = X * theta  - y
-      val grad : RowVector = ((diff.T * X) * (alpha / m))
+      val grad  = (diff.T * X) * (alpha / m)
       val regularization = (0 :: theta.T.dropFirstColumn) * lambda / m
       grad + regularization
     }

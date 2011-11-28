@@ -1,9 +1,11 @@
+
 package matrix
 
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import scala.math.Pi
 import matrix.Matrix._
+
 
 
 class MatrixTest extends FlatSpec with ShouldMatchers {
@@ -14,9 +16,10 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
     (1, 2),
     (1, 2))
 
-  "Matrix" should "be multiplied by matrix" in{
+  "Matrix" should "be multiplied by matrix" in   {
+   val  PROD : Matrix = X * Y
 
-    (X * Y).should( be(Matrix(
+    PROD.should( be(Matrix(
       ( 7, 14),
       (11, 22))))
 
@@ -146,7 +149,7 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
   }
 
   it should  "convert Array[Double] to column vector" in {
-    Vector(0,0,0) + Array(1,2,3) should be (Vector(1,2,3))
+//    Vector(0,0,0) + Array(1.0,2,3) should be (Vector(1,2,3))
   }
 
   it should  "sum columns" in {
@@ -186,11 +189,11 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
   }
 
   it should  "calculate sum of columns" in {
-    sum(Matrix((1,2), (3,4), (5,6))) should be(RowVector(9, 12))
+    matrix.sum( Matrix((1,2), (3,4), (5,6))) should be(RowVector(9, 12))
   }
 
   it should  "calculate sum of one row matrix" in {
-    sum(Matrix((1,2,3))) should be(Vector(6))
+    matrix.sum(RowVector(1,2,3)) should be(6)
   }
 
   it should  "calculate sqrt" in {

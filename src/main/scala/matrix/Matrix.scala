@@ -179,25 +179,12 @@ object MyMatrixOperations extends MatrixOperations{
     val PARTITIONS : Int = max(1, min(M1_ROWS, min(N / 20000, 256)))
     val PARTITION_ROWS : Int = M1_ROWS/PARTITIONS
 
-    // THIS IS SO SLOW!
-    //    @inline def singleThreadedMultiplication(row_range: Range) {
-    //      for (row_index <- row_range;
-    //           col_index <- 0 until M2_COLS) {
-    //        var sum = 0.0
-    //        for (i <- 0 until M1_COLS) {
-    //          sum += m1(row_index)(i) * m2(i)(col_index)
-    //        }
-    //
-    //        res(row_index)(col_index) = sum
-    //      }
-    //    }
 
 
     @inline def singleThreadedMultiplicationFAST(row_range: Range) = {
       var col, i  = 0
       var sum = 0.0
       var row = row_range.start
-      val M1_COLS_MINUS = M1_COLS
 
       // while statements are much faster than for statements
       while(row < row_range.end){ col = 0
@@ -219,12 +206,6 @@ object MyMatrixOperations extends MatrixOperations{
       singleThreadedMultiplicationFAST((i * PARTITION_ROWS) until (min(M1_ROWS, (i + 1) * PARTITION_ROWS)))
     }
     res
-
-
-//    if (PARTITIONS > 1)
-//      parallelMultiplication
-//    else
-//      singleThreadedMultiplicationFAST(0 until M1_ROWS)
 
   }
 

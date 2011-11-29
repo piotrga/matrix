@@ -32,6 +32,11 @@ object Multiply{
 
 abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(implicit operations : MatrixOperations = MyMatrixOperations){
 
+  lazy val rows = items.length
+  lazy val cols = if (items.length == 0) 0 else items(0).length
+  lazy val fast_apply = if (rows* cols > 20000) operations.apply _ else operations.small_apply _
+
+
   def row(i: Int): Array[Double] = items(i)
 
   def apply(row:Int, col:Int) = if (row >= rows || col >= cols) throw new Exception("Index out of bound (%d,%d) matrix size is %dx%d".format(row,col, rows, cols)) else items(row)(col)
@@ -47,12 +52,10 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
   def -:(scalar:Double) = apply(scalar - _)
   def @^(scalar:Double) = apply(pow (_, scalar))
 
-  def rows = items.length
-  def cols = if (items.length == 0) 0 else items(0).length
 
-  def apply(f : Double => Double) : Repr = instance(items.map(_.map(f(_))))
+  @inline def apply(f : Double => Double) : Repr = instance(fast_apply(items, f) )
 
-  def instance(items: Array[Array[Double]]) : Repr
+  @inline def instance(items: Array[Array[Double]]) : Repr
 
   def +(m : MatrixLike[Repr]) = combine(m, _+_)
   def -(m : MatrixLike[Repr]) = combine(m, _-_)
@@ -60,12 +63,13 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
   def @/(m : MatrixLike[Repr]) = combine(m, _/_)
 
 
-  private def combine(v1:Array[Double], v2:Array[Double])(fun:(Double,Double) => Double ) : Array[Double] = v1.zip(v2).map({case(x,y)=>fun(x,y)})
+  @inline private def combine(v1:Array[Double], v2:Array[Double])(fun:(Double,Double) => Double ) : Array[Double] = v1.zip(v2).par.map({case(x,y)=>fun(x,y)}).toArray
 
-  def combine(m:MatrixLike[Repr], fun:(Double,Double) => Double) : Repr = {
+
+  @inline def combine(m:MatrixLike[Repr], fun:(Double,Double) => Double) : Repr = {
     if (m.rows != rows || m.cols != cols) throw new Exception("Not the same matrix sizes %dx%d != %dx%d".format(rows,cols, m.rows,m.cols ))
     val rows_combined = items.zip(m.items)
-    instance(rows_combined.map{case (row1, row2) => combine(row1,row2)(fun)})
+    instance(rows_combined.par.map{case (row1, row2) => combine(row1,row2)(fun)}.toArray)
   }
 
   def multiply(m: MatrixLike[_]) : Array[Array[Double]] = {
@@ -100,7 +104,7 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
 class Matrix(items:Array[Array[Double]])extends MatrixLike[Matrix](items){
   def sum : RowVector = rows match {
     case 1 => RowVector(items(0).reduce(_+_))
-    case _ => RowVector(items.transpose.map(col => col.reduce(_+_)))
+    case _ => RowVector(items.transpose.par.map(col => col.reduce(_+_)).toArray)
   }
 
   def inverse = {
@@ -121,7 +125,6 @@ class Vector(items:Array[Array[Double]]) extends MatrixLike[Vector](items){
   def T : RowVector = new RowVector(items.transpose)
   def ᵀ = this.T
   def sum : Double = items.transpose.apply(0).reduce(_+_)
-  def unary_∑ = this.sum
 
 
   def ::(scalar : Double) : Matrix = scalar :: new Matrix(items)
@@ -160,62 +163,6 @@ object Vector{
 object RowVector{
   def apply(data:Double*) = new RowVector(Array(data.toArray))
   def apply(data:Array[Double]) = new RowVector(Array(data))
-}
-
-trait MatrixOperations{
-  def multiply(m1: Array[Array[Double]], m2: Array[Array[Double]]) :  Array[Array[Double]]
-}
-
-object MyMatrixOperations extends MatrixOperations{
-  import math.{min,  max}
-
-  def multiply(m1: Array[Array[Double]], m2: Array[Array[Double]]) :  Array[Array[Double]] = {
-    val res =  Array.ofDim[Double](m1.length, m2(0).length)
-    val M1_COLS = m1(0).length
-    val M1_ROWS = m1.length
-    val M2_COLS = m2(0).length
-
-    val N = M1_ROWS * M1_COLS * M2_COLS
-    val PARTITIONS : Int = max(1, min(M1_ROWS, min(N / 20000, 256)))
-    val PARTITION_ROWS : Int = M1_ROWS/PARTITIONS
-
-
-
-    @inline def singleThreadedMultiplicationFAST(row_range: Range) = {
-      var col, i  = 0
-      var sum = 0.0
-      var row = row_range.start
-
-      // while statements are much faster than for statements
-      while(row < row_range.end){ col = 0
-        while(col < M2_COLS){ i = 0; sum = 0
-          while(i<M1_COLS){
-            sum += m1(row)(i) * m2(i)(col)
-            i+=1
-          }
-
-          res(row)(col) = sum
-          col += 1
-
-        }; row += 1
-      }
-      res
-    }
-
-    ( 0 until PARTITIONS).par.foreach{ i =>
-      singleThreadedMultiplicationFAST((i * PARTITION_ROWS) until (min(M1_ROWS, (i + 1) * PARTITION_ROWS)))
-    }
-    res
-
-  }
-
-}
-
-object ApacheMatrixOperations extends MatrixOperations{
-  def multiply(m1:Array[Array[Double]], m2:Array[Array[Double]]): Array[Array[Double]] = {
-    import org.apache.commons.math.linear.RealMatrixImpl
-    new RealMatrixImpl(m1).multiply(new RealMatrixImpl(m2)).getData
-  }
 }
 
 object Matrix{

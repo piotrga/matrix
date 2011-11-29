@@ -18,20 +18,33 @@ class MatrixMultiplicationTest extends FlatSpec with ShouldMatchers{
     System.currentTimeMillis() - start
   }
 
-  "Matrix" should "multiply fast with default mechanism" in {
-    import matrix._
+  "Matrix" should "multiplication should be at least 4 times faster than apache implementation" in {
 
-    val M = random(500,400, 1)
-    val M1 = random(400, 250, 1)
-    val M2 = random(250, 10, 1)
-    val TIMES = 50
 
-    val time_per_multiplication = time {
-      (1 to TIMES).foreach(_ => M * M1 * M2)
-    } / TIMES
-    println("Time per multiplication= "+ time_per_multiplication)
+    def runTest(ops: MatrixOperations) = {
+      val M = random(500, 400, 1)
+      val M1 = random(400, 250, 1)
+      val M2 = random(250, 10, 1)
+      val TIMES = 50
 
-    time_per_multiplication should be < (30L)
+      val time_per_multiplication = time {
+        (1 to TIMES).foreach(_ => ops.multiply(ops.multiply (M.items, M1.items), M2.items))
+      } / TIMES
+      println("Time per multiplication= " + time_per_multiplication)
+      time_per_multiplication
+    }
+
+    def apache = {
+      runTest(ApacheMatrixOperations)
+    }
+
+    def my = {
+      runTest(MyMatrixOperations)
+    }
+//    my
+//    apache
+
+    my should be < (apache/4)
   }
 
 }

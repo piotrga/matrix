@@ -24,8 +24,8 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
     def cost(X: Matrix, y: Vector, theta: Vector) : Double = {
       val m = X.rows
       val diff =   X * theta - y
-      val value  = diff.T * diff / (2 * m)
-      val reg = sum(theta.T.dropFirstColumn) * lambda / (2 * m)
+      val value  = (diff ᵀ) * diff / (2 * m)
+      val reg = ∑((theta ᵀ).dropFirstColumn) * lambda / (2 * m)
       value + reg
 
     }
@@ -33,8 +33,8 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
     def gradient(X: Matrix, y: Vector, theta: Vector) : RowVector = {
       val m = X.rows
       val diff = X * theta  - y
-      val grad  = (diff.T * X) * (alpha / m)
-      val regularization = (0 :: theta.T.dropFirstColumn) * lambda / m
+      val grad  = ((diff ᵀ) * X) * (alpha / m)
+      val regularization = (0 :: (theta ᵀ).dropFirstColumn) * lambda / m
       grad + regularization
     }
 

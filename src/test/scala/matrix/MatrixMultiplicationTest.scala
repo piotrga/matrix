@@ -18,7 +18,7 @@ class MatrixMultiplicationTest extends FlatSpec with ShouldMatchers{
     System.currentTimeMillis() - start
   }
 
-  "Matrix" should "multiplication should be at least 4 times faster than apache implementation" in {
+  "Matrix" should "multiplication should be at least 3.5 times faster than apache implementation" in {
 
 
     def runTest(ops: MatrixOperations) = {
@@ -44,7 +44,7 @@ class MatrixMultiplicationTest extends FlatSpec with ShouldMatchers{
 //    my
 //    apache
 
-    my should be < (apache/4)
+    my.toDouble should be < (apache/3.5)
   }
 
 }

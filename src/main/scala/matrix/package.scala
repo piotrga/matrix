@@ -1,5 +1,6 @@
 package object matrix {
-  def sqrt[T <: MatrixLike[_]](m : MatrixLike[T]) : T =  m.apply(math.sqrt _)
+  def sqrt[T <: MatrixLike[_]](m : MatrixLike[T]) =  m.apply(math.sqrt _)
+  def log[T <: MatrixLike[_]](m : MatrixLike[T])  =  m.apply(math.log _)
   def √[T <: MatrixLike[_]](m : MatrixLike[T]) =  sqrt(m)
   def sum(m : Matrix) : RowVector  =  m.sum
   def ∑(m : Matrix) =  sum(m)
@@ -7,6 +8,7 @@ package object matrix {
   def ∑(m : RowVector) =  sum(m)
   def sum(m : Vector) : Double =  m.sum
   def ∑(m : Vector) =  sum(m)
+
 
   def std(m : Matrix) : RowVector = sqrt(sum(m @^ 2) / m.rows)
   def diag(m : RowVector) : Matrix = m.diag
@@ -24,6 +26,7 @@ package object matrix {
     def /(m: MatrixLike[_]) = m(d/_)
     def +(m:MatrixLike[_]) = m + d
     def -(m:MatrixLike[_]) = m(d - _)
+    def -(m:Matrix) = m(d - _)
   }
 
 

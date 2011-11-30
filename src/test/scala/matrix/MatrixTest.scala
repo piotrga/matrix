@@ -5,7 +5,8 @@ import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import scala.math.Pi
 import matrix.Matrix._
-
+import io.Source
+import java.io.{PrintWriter, FileOutputStream, File}
 
 
 class MatrixTest extends FlatSpec with ShouldMatchers {
@@ -227,6 +228,40 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
     val X = Matrix((1,2),(3,4))
     val thrown = evaluating  {val x : RowVector = X} should produce [Exception]
     thrown.getMessage should be ("RowVector can only have one row but it has 2!")
+  }
+
+  it should "read from file" in  {
+    val tmp = new PrintWriter("tmp.txt")
+    tmp.write("""# Created by Octave 3.2.4, Fri Nov 11 01:45:57 2011 GMT <piotrga@Tygrysek.local>
+# name: y
+# type: matrix
+# rows: 5000
+# columns: 1
+ 10 0.1234
+
+ 10 20
+ 10 1.234e+10
+ 10 4
+""")
+    tmp.close()
+    try{
+      Matrix.fromFile("tmp.txt") should be (Matrix((10, 0.1234), (10, 20), (10, 1.234e+10), (10, 4)))
+
+    }finally{
+      new File("tmp.txt").delete()
+    }
+
+  }
+
+
+  it should "flatten to row vector" in {
+    (X :: Y).flatten should be (RowVector(3,4,1,2,5,6,1,2))
+  }
+
+  it should "reshape flat data" in{
+    X.flatten.reshape((2,2)) should be(List(X))
+    (X.flatten :: Y.flatten).reshape((2,2), (2,2)) should be(List(X, Y))
+    RowVector(1,2,3,4,5,6).reshape((2,3)) should be (List(Matrix((1,2,3),(4,5,6))))
   }
 
 }

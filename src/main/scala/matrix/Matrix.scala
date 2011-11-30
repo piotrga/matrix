@@ -2,6 +2,8 @@ package matrix
 
 import scala.Array._
 import scala.math._
+import io.Source
+import annotation.tailrec
 
 trait Multiply[M1, M2, DST]{
   def apply(m1:M1,  m2:M2) : DST
@@ -32,6 +34,8 @@ object Multiply{
 
 abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(implicit operations : MatrixOperations = MyMatrixOperations){
 
+  def flatten : RowVector = RowVector(items.flatten)
+
   lazy val rows = items.length
   lazy val cols = if (items.length == 0) 0 else items(0).length
   lazy val fast_apply = if (rows* cols > 20000) operations.apply _ else operations.small_apply _
@@ -42,6 +46,7 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
   def apply(row:Int, col:Int) = if (row >= rows || col >= cols) throw new Exception("Index out of bound (%d,%d) matrix size is %dx%d".format(row,col, rows, cols)) else items(row)(col)
   def *[A, B](m: A)(implicit multiply : Multiply[Repr, A,  B])  = multiply(this.asInstanceOf[Repr], m)
 
+  def unary_-() = apply(-_)
   def *(scalar:Double) =  apply(_ * scalar)
   def +(scalar:Double) =  apply(_ + scalar)
   def -(scalar:Double) =  apply(_ - scalar)
@@ -145,13 +150,29 @@ class RowVector(items:Array[Array[Double]]) extends MatrixLike[RowVector](items)
     new Matrix(res)
   }
 
-//  def *(v:Vector) : Double = multiply(v).apply(0).apply(0)
+  //  def *(v:Vector) : Double = multiply(v).apply(0).apply(0)
 
   def sum : Double = items(0).sum
 
   def instance(items: Array[Array[Double]]) = new RowVector(items)
   def ::(scalar : Double) : RowVector = new RowVector(items.map(scalar +: _))
   def ::(r : RowVector) : RowVector = new RowVector(Array(r.items(0) ++ items(0)))
+  def reshape(dimensions : (Int, Int)*) : List[Matrix] = {
+    @tailrec def r(dimensions : List[(Int, Int)], data:Seq[Double], accumulator: List[Matrix]) : List[Matrix] = dimensions match{
+      case (rows,cols) :: dimTail => {
+        if(data.length < rows*cols) throw new Exception("Not enough elements. Dimensions left: "+ dimensions)
+        val res = Array.ofDim[Double](rows,cols)
+        val (current, dataTail) = data.splitAt(rows*cols)
+        for(row<- 0 until rows; col <- 0 until cols) res(row)(col) = current(row*cols+col)
+        r (dimTail, dataTail, new Matrix(res)::accumulator)
+      }
+      case Nil => {
+        if (data.length > 0 ) throw new Exception("There are %d elements left! Not enough dimensions.".format(data.length))
+        accumulator.reverse
+      }
+    }
+    r(dimensions.toList, items(0), Nil)
+  }
 
 }
 
@@ -171,6 +192,13 @@ object Matrix{
  This function might look complicated, but I had to sacrifice readability for efficiency here.
   */
 
+  def fromFile(filename:String) = {
+    def readMatrix(filePath: String): Array[Array[Double]] = {
+      Source.fromFile(filePath).getLines().filter(!_.startsWith("#")).filter(!_.trim().isEmpty).map(_.trim().split(" ").map(_.toDouble)).toArray
+    }
+
+    new Matrix(readMatrix(filename))
+  }
 
   def apply(t2 : Product*) = new Matrix(t2.toArray.map(t => t.productIterator.map(_ match {
     case d: {def toDouble: Double} => d.toDouble

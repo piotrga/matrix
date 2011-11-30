@@ -16,8 +16,6 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
 
   val J = new CostFunction {
 
-
-
     val lambda = 1.0
     val alpha = 1.0
 

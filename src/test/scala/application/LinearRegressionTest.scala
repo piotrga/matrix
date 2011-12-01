@@ -48,7 +48,7 @@ class LinearRegressionTest extends FlatSpec with ShouldMatchers{
     val example = toFeatures(range)
 
     val estimation = solution(example)
-    println(range :: estimation)
+//    println(range :: estimation)
 
     estimation(3,0) should be (  -1.3389483845601906 plusOrMinus 0.000001)
 

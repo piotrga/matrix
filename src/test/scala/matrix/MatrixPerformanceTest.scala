@@ -18,7 +18,7 @@ class MatrixPerformanceTest extends FlatSpec with ShouldMatchers{
     System.currentTimeMillis() - start
   }
 
-  "Matrix" should "multiplication should be at least 3.5 times faster than apache implementation" in {
+  "Matrix multiplication" should "be at least 2 times faster than apache implementation" in {
 
 
     def runTest(ops: MatrixOperations) = {
@@ -41,7 +41,7 @@ class MatrixPerformanceTest extends FlatSpec with ShouldMatchers{
       runTest(MyMatrixOperations)
     }
 
-    my.toDouble should be < (apache/3.5)
+    my.toDouble should be < (apache/2)
   }
 
 
@@ -71,8 +71,8 @@ class MatrixPerformanceTest extends FlatSpec with ShouldMatchers{
     time_of_unparallel = math.min(time_of_unparallel, benchmark(N)(unparallelOperations.apply(items, function)))
     time_of_my = math.min(time_of_my, benchmark(N)(M(function)))
 
-    l("Unparallel(%dx%d)[%d]: %g", rows,columns, N, time_of_unparallel)
-    l("My: %g", time_of_my)
+//    l("Unparallel(%dx%d)[%d]: %g", rows,columns, N, time_of_unparallel)
+//    l("My: %g", time_of_my)
 
     time_of_my/time_of_unparallel
   }

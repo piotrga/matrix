@@ -118,6 +118,7 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
   }
 
 
+
   it should "prepend column" in{
     (1 :: X).should(be(Matrix(
       (1, 3, 4),
@@ -264,7 +265,16 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
     RowVector(1,2,3,4,5,6).reshape((2,3)) should be (List(Matrix((1,2,3),(4,5,6))))
   }
 
+
+//  "MyMatrixOperations" should "multiply correctly big matricies" in {
+//    val M = random(5003, 400, 1)
+//    val M1 = random(400,25, 1)
+//    ApacheMatrixOperations.multiply(M.items, M1.items) should be(MyMatrixOperations.multiply(M.items, M1.items))
+//  }
+
+
 }
+
 
 
 

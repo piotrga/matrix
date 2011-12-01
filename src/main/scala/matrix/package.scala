@@ -22,7 +22,7 @@ package object matrix {
   }
 
   class MatrixOps(d:Double){
-    def *(m:MatrixLike[_]) = m * d
+    def *(m:Matrix) = m * d
     def /(m: MatrixLike[_]) = m(d/_)
     def +(m:MatrixLike[_]) = m + d
     def -(m:MatrixLike[_]) = m(d - _)

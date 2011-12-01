@@ -1,6 +1,7 @@
 package matrix
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
+import akka.dispatch.Future
 
 
 trait MatrixOperations{
@@ -12,7 +13,7 @@ trait MatrixOperations{
 
 object MyMatrixOperations extends MatrixOperations{
 
-  import math.{min,  max}
+  import math.{min,  max, round}
 
   override def apply(items: Array[Array[Double]], f: (Double) => Double) = items.par.map(_.map(f(_))).toArray
 
@@ -23,12 +24,14 @@ object MyMatrixOperations extends MatrixOperations{
     val M2_COLS = m2(0).length
 
     val N = M1_ROWS * M1_COLS * M2_COLS
-    val PARTITIONS : Int = max(1, min(M1_ROWS, min(N / 20000, 256)))
-    val PARTITION_ROWS : Int = M1_ROWS/PARTITIONS
+    var PARTITIONS : Int = max(1, min(M1_ROWS, min(N / 20000, 256)))
+    val PARTITION_ROWS : Int = round(M1_ROWS.toDouble/PARTITIONS).toInt
+
+    PARTITIONS = M1_ROWS/PARTITION_ROWS
 
 
 
-    @inline def singleThreadedMultiplicationFAST(start_row:Int,  end_row:Int) = {
+    @inline def singleThreadedMultiplicationFAST(start_row:Int,  end_row:Int) {
       var col, i  = 0
       var sum = 0.0
       var row = start_row
@@ -46,13 +49,13 @@ object MyMatrixOperations extends MatrixOperations{
 
         }; row += 1
       }
-      res
 
     }
 
-    ( 0 until PARTITIONS).par.foreach{ i =>
-      singleThreadedMultiplicationFAST((i * PARTITION_ROWS), (min(M1_ROWS, (i + 1) * PARTITION_ROWS)))
-    }
+    (0 to PARTITIONS).par.map( i =>
+        singleThreadedMultiplicationFAST((i * PARTITION_ROWS), (min(M1_ROWS, (i + 1) * PARTITION_ROWS)))
+      )
+
     res
 
   }

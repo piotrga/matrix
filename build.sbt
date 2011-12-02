@@ -16,3 +16,4 @@ libraryDependencies ++= Seq(
 	"org.scalatest" %% "scalatest" % "1.6.1" % "test"
 )
 
+parallelExecution in IntegrationTest := false

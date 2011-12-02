@@ -34,7 +34,7 @@ object Multiply{
 
 abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(implicit operations : MatrixOperations = MyMatrixOperations){
 
-  def flatten : RowVector = RowVector(items.flatten)
+  def flatten : RowVector = RowVector(items.transpose.flatten)
 
   lazy val rows = items.length
   lazy val cols = if (items.length == 0) 0 else items(0).length
@@ -56,6 +56,8 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
   def +:(scalar:Double) = this + scalar
   def -:(scalar:Double) = apply(scalar - _)
   def @^(scalar:Double) = apply(pow (_, scalar))
+
+
 
 
   @inline def apply(f : Double => Double) : Repr = instance(fast_apply(items, f) )
@@ -82,7 +84,7 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
     operations.multiply(items, m.items)
   }
 
-  def dropFirstColumn = instance(items.transpose.drop(1).transpose)
+  def dropFirstColumn = instance(items.par.map(_.drop(1)).toArray)
   def toScalar : Double = if (rows == 1 &&  cols == 1) this(0,0) else throw new Exception("Matrix is not a scalar!")
 
   override def toString = mkString
@@ -119,8 +121,8 @@ class Matrix(items:Array[Array[Double]])extends MatrixLike[Matrix](items){
 
   def T = new Matrix(items.transpose)
   def ᵀ = this.T
-  def ::(scalar : Double) : Matrix = new Matrix(items.map(scalar +: _))
-  def ::(m : MatrixLike[_]) : Matrix = new Matrix(m.items.zip(items).map{case (r1, r2) => r1 ++ r2})
+  def ::(scalar : Double) : Matrix = new Matrix(items.par.map(scalar +: _).toArray)
+  def ::(m : MatrixLike[_]) : Matrix = new Matrix(m.items.par.zip(items).map{case (r1, r2) => r1 ++ r2}.toArray)
 
   def instance(items: Array[Array[Double]]) = new Matrix(items)
 }
@@ -163,7 +165,7 @@ class RowVector(items:Array[Array[Double]]) extends MatrixLike[RowVector](items)
         if(data.length < rows*cols) throw new Exception("Not enough elements. Dimensions left: "+ dimensions)
         val res = Array.ofDim[Double](rows,cols)
         val (current, dataTail) = data.splitAt(rows*cols)
-        for(row<- 0 until rows; col <- 0 until cols) res(row)(col) = current(row*cols+col)
+        for(row<- 0 until rows; col <- 0 until cols) res(row)(col) = current(row+col*rows)
         r (dimTail, dataTail, new Matrix(res)::accumulator)
       }
       case Nil => {
@@ -209,12 +211,14 @@ object Matrix{
   def apply(row: Double, rest:Double*) = new Matrix(Array((row+:rest).toArray))
 
   implicit def arrayToVector(items:Array[Double]): Vector = Vector(items:_*)
+  implicit def arrayToRowVector(items:Array[Double]): RowVector = RowVector(items:_*)
   implicit def arrayToMatrixLikeVector(items:Array[Double]): MatrixLike[Vector]  = Vector(items:_*)
 
   //  implicit def scalarToMatrix(scalar:Double): Matrix = new Matrix(Array(Array(scalar)))
   implicit def intArrayToMatrixVector(items:Array[Int]): MatrixLike[Vector] = Vector(items.map(_.toDouble):_*)
   implicit def intArrayToVector(items:Array[Int]): Vector = Vector(items.map(_.toDouble):_*)
   implicit def seqIntToSeqDouble(s:Seq[Int]):Seq[Double] = s.map(_.toDouble)
+
 
 
 

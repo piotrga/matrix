@@ -256,13 +256,15 @@ class MatrixTest extends FlatSpec with ShouldMatchers {
 
 
   it should "flatten to row vector" in {
-    (X :: Y).flatten should be (RowVector(3,4,1,2,5,6,1,2))
+    val X = Matrix((1, 2), (3,4))
+    (X).flatten should be (RowVector(1, 3, 2, 4))
   }
 
   it should "reshape flat data" in{
-    X.flatten.reshape((2,2)) should be(List(X))
-    (X.flatten :: Y.flatten).reshape((2,2), (2,2)) should be(List(X, Y))
-    RowVector(1,2,3,4,5,6).reshape((2,3)) should be (List(Matrix((1,2,3),(4,5,6))))
+    val X = Matrix((1,2,3),(4,5,6))
+    X.flatten.reshape((2,3)) should be(List(X))
+    (X.flatten :: Y.flatten).reshape((2,3), (2,2)) should be(List(X, Y))
+    RowVector(1,4,2,5,3,6).reshape((2,3)) should be (List(Matrix((1,2,3),(4,5,6))))
   }
 
 

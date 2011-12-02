@@ -45,12 +45,6 @@ class MatrixPerformanceTest extends FlatSpec with ShouldMatchers{
   }
 
 
-  def benchmark(iterations:Int)( block : => Unit):Double = {
-    val start = System.nanoTime()
-    var i = 0
-    while(i<iterations) {block;i+=1}
-    ((System.nanoTime() - start) /1000000).toDouble/ iterations
-  }
 
   def l(s:String, args:Any*) { println(">>>"+s.format(args:_*))}
 
@@ -83,5 +77,11 @@ class MatrixPerformanceTest extends FlatSpec with ShouldMatchers{
   it should "do scalar operations fast 100x1000" in    { speed_ratio_for_dimentions(100, 1000) should be < 0.7}
   it should "do scalar operations fast 1000x1" in      { speed_ratio_for_dimentions(1000, 1) should be < 1.3}
   it should "do scalar operations fast 10x1000" in     { speed_ratio_for_dimentions(10, 1000) should be < 1.1}
+  it should  "do :: fast" in {
+    val X = random(5000, 100, 1)
+    benchmark(1000){
+      1::X
+    } should be < 1.0
+  }
 
 }

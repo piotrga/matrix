@@ -1,6 +1,8 @@
+import java.util.UUID
+
 package object matrix {
   def sqrt[T <: MatrixLike[_]](m : MatrixLike[T]) =  m.apply(math.sqrt _)
-  def log[T <: MatrixLike[_]](m : MatrixLike[T])  =  m.apply(math.log _)
+  @inline def log[T <: MatrixLike[_]](m : MatrixLike[T])  =  m.apply(math.log _)
   def √[T <: MatrixLike[_]](m : MatrixLike[T]) =  sqrt(m)
   def sum(m : Matrix) : RowVector  =  m.sum
   def ∑(m : Matrix) =  sum(m)
@@ -13,6 +15,9 @@ package object matrix {
   def std(m : Matrix) : RowVector = sqrt(sum(m @^ 2) / m.rows)
   def diag(m : RowVector) : Matrix = m.diag
   def ones(rows:Int, cols:Int) =  new Matrix(Array.fill(rows, cols)(1.0))
+  def zeros(rows:Int, cols:Int) =  new Matrix(Array.fill(rows, cols)(0.0))
+  def norm2(m: RowVector) = math.sqrt(sum(m@^2))
+
 
 
   def random(rows: Int, columns: Int, range : Double): Matrix = {
@@ -62,12 +67,24 @@ package object matrix {
   //  implicit def MatrixLikeToMatrix(M : MatrixLike) : Matrix = new Matrix(M.items)
 
   @inline def printTime[T](label:String)(block : => T) = {
-    val start = System.currentTimeMillis()
+    val start = System.nanoTime()
     try{
       block
     }finally {
-      val duration = System.currentTimeMillis() - start
-      printf("%s took %d ms\n", label, duration)
+      val duration = System.nanoTime() - start
+      printf("%s took %f ms\n", label, duration/1000000.0)
     }
   }
+
+  def benchmark(iterations:Int)( block : => Unit):Double = {
+    val id = UUID.randomUUID()
+    println("Starting "+id)
+    val start = System.nanoTime()
+    var i = 0
+    while(i<iterations) {block;i+=1}
+    val res = ((System.nanoTime() - start) /1000000).toDouble/ iterations
+    println("Finished "+id)
+    res
+  }
+
 }

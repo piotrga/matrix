@@ -3,7 +3,10 @@ package matrix
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
-
+//import org.junit.runner.RunWith
+//import org.scalatest.junit.JUnitRunner
+//
+//@RunWith(classOf[JUnitRunner])
 class MatrixPerformanceTest extends FlatSpec with ShouldMatchers{
   def doWithin(millis:Long)( block : => Unit){
     val start = System.currentTimeMillis()

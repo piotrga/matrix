@@ -7,8 +7,10 @@ import scala.math.Pi
 import matrix.Matrix._
 import io.Source
 import java.io.{PrintWriter, FileOutputStream, File}
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
-
+@RunWith(classOf[JUnitRunner])
 class MatrixTest extends FlatSpec with ShouldMatchers {
   val X = Matrix(
     (3, 4),

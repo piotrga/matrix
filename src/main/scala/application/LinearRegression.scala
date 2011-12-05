@@ -34,8 +34,8 @@ class LinearRegression(J:CostFunction){
   val opt = new NonLinearConjugateGradientOptimizer(ConjugateGradientFormula.FLETCHER_REEVES)
 
   def normalize(X:Matrix):(Matrix, RowVector, RowVector) = {
-    val mean : RowVector = ∑(X) / X.rows
-    val Mean = ones(X.rows, 1) * mean
+    val mean : RowVector = ∑(X) / X.row_count
+    val Mean = ones(X.row_count, 1) * mean
     val Diff = X - Mean
     val std = matrix.std(Diff)
     val Std = diag(1/:std)
@@ -43,7 +43,7 @@ class LinearRegression(J:CostFunction){
   }
 
   def normalize(X:Matrix, mean:RowVector, std:RowVector) : Matrix = {
-    val Mean = ones(X.rows,1) * mean
+    val Mean = ones(X.row_count,1) * mean
     val Std = diag(1/:std)
     (X - Mean) * Std
   }

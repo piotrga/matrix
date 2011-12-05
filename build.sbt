@@ -13,7 +13,8 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-math" % "2.2",
 //	"se.scalablesolutions.akka" % "akka-typed-actor" % "1.2",
 //	"se.scalablesolutions.akka" % "akka-remote" % "1.2",
-	"org.scalatest" %% "scalatest" % "1.6.1" % "test"
+	"org.scalatest" %% "scalatest" % "1.6.1" % "test",
+	"junit" % "junit" % "4.10" % "test"
 )
 
 parallelExecution in IntegrationTest := false

@@ -4,6 +4,7 @@ import scala.Array._
 import scala.math._
 import io.Source
 import annotation.tailrec
+import java.io.{File, PrintWriter}
 
 trait Multiply[M1, M2, DST]{
   def apply(m1:M1,  m2:M2) : DST
@@ -36,14 +37,15 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
 
   def flatten : RowVector = RowVector(items.transpose.flatten)
 
-  lazy val rows = items.length
+  def rows = items.map(RowVector(_:_*))
+  lazy val row_count = items.length
   lazy val cols = if (items.length == 0) 0 else items(0).length
-  lazy val fast_apply = if (rows* cols > 20000) operations.apply _ else operations.small_apply _
+  lazy val fast_apply = if (row_count* cols > 20000) operations.apply _ else operations.small_apply _
 
 
   def row(i: Int): Array[Double] = items(i)
 
-  def apply(row:Int, col:Int) = if (row >= rows || col >= cols) throw new Exception("Index out of bound (%d,%d) matrix size is %dx%d".format(row,col, rows, cols)) else items(row)(col)
+  def apply(row:Int, col:Int) = if (row >= row_count || col >= cols) throw new Exception("Index out of bound (%d,%d) matrix size is %dx%d".format(row,col, row_count, cols)) else items(row)(col)
   def *[A, B](m: A)(implicit multiply : Multiply[Repr, A,  B])  = multiply(this.asInstanceOf[Repr], m)
 
   def unary_-() = apply(-_)
@@ -74,18 +76,18 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
 
 
   @inline def combine(m:MatrixLike[Repr], fun:(Double,Double) => Double) : Repr = {
-    if (m.rows != rows || m.cols != cols) throw new Exception("Not the same matrix sizes %dx%d != %dx%d".format(rows,cols, m.rows,m.cols ))
+    if (m.row_count != row_count || m.cols != cols) throw new Exception("Not the same matrix sizes %dx%d != %dx%d".format(row_count,cols, m.row_count,m.cols ))
     val rows_combined = items.zip(m.items)
     instance(rows_combined.par.map{case (row1, row2) => combine(row1,row2)(fun)}.toArray)
   }
 
   def multiply(m: MatrixLike[_]) : Array[Array[Double]] = {
-    if (cols != m.rows) throw new Exception("Can not multipy matrix %dx%d by %dx%d".format(rows, cols, m.rows, m.cols))
+    if (cols != m.row_count) throw new Exception("Can not multipy matrix %dx%d by %dx%d".format(row_count, cols, m.row_count, m.cols))
     operations.multiply(items, m.items)
   }
 
   def dropFirstColumn = instance(items.par.map(_.drop(1)).toArray)
-  def toScalar : Double = if (rows == 1 &&  cols == 1) this(0,0) else throw new Exception("Matrix is not a scalar!")
+  def toScalar : Double = if (row_count == 1 &&  cols == 1) this(0,0) else throw new Exception("Matrix is not a scalar!")
 
   override def toString = mkString
 
@@ -98,18 +100,24 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
     }).take(9).reverse.padTo(9, ' ').reverse
   }
 
-  def mkString = "Matrix(%dx%d):\n%s\n".format(rows,cols, items.map(_.map(magicFormat).mkString(" ")).mkString("\n"))
+  def mkString = "Matrix(%dx%d):\n%s\n".format(row_count,cols, items.map(_.map(magicFormat).mkString(" ")).mkString("\n"))
 
   override def equals(p1: Any) = p1 match{
     case m : MatrixLike[_] => items.deep.equals(m.items.deep)
     case _ => false
   }
 
+  def saveToFile(filePath:String) = {
+    val p = new PrintWriter(new File(filePath))
+    p.write(items.map(_.mkString(" ")).mkString("\n"))
+    p.close()
+    this
+  }
 }
 
 
 class Matrix(items:Array[Array[Double]])extends MatrixLike[Matrix](items){
-  def sum : RowVector = rows match {
+  def sum : RowVector = row_count match {
     case 1 => RowVector(items(0).reduce(_+_))
     case _ => RowVector(items.transpose.par.map(col => col.reduce(_+_)).toArray)
   }
@@ -141,7 +149,7 @@ class Vector(items:Array[Array[Double]]) extends MatrixLike[Vector](items){
 }
 
 class RowVector(items:Array[Array[Double]]) extends MatrixLike[RowVector](items){
-  if (this.rows != 1) throw new Exception("RowVector can only have one row but it has %d!" format(this.rows) )
+  if (this.row_count != 1) throw new Exception("RowVector can only have one row but it has %d!" format(this.row_count) )
 
   def T : Vector = new Vector(items.transpose)
   def ᵀ = this.T

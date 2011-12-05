@@ -4,17 +4,18 @@ import org.scalatest.matchers.ShouldMatchers
 import org.scalatest.FlatSpec
 import matrix._
 
-
 class Ex4Test extends FlatSpec with ShouldMatchers{
 
   lazy val X = Matrix.fromFile("data/X.txt")
   lazy val y = Matrix.fromFile("data/Y.txt")
+  lazy val Y = Ex4.numbersToBitmaps(y, 10)
+  
   lazy val thetas : RowVector = Matrix.fromFile("data/theta.txt").T
   val layerDim = List((25, 401), (10, 26))
 
 
   "CostFunction" should "convert numbers to 01 vectors" in {
-    numbersToBitmaps(Vector(10,1,2,3,4,5,6,7,8,9), 10) should be (Matrix(
+    Ex4.numbersToBitmaps(Vector(10,1,2,3,4,5,6,7,8,9), 10) should be (Matrix(
       (0,0,0,0,0,0,0,0,0,1),
       (1,0,0,0,0,0,0,0,0,0),
       (0,1,0,0,0,0,0,0,0,0),
@@ -30,11 +31,11 @@ class Ex4Test extends FlatSpec with ShouldMatchers{
 
 
   it should "calculate correct cost without regularization" in {
-    new J(X,numbersToBitmaps(y, 10), layerDim)(lambda = 0).cost(thetas) should be (0.287629 plusOrMinus 0.0000005)
+    new J(X,Y, layerDim)(lambda = 0).cost(thetas) should be (0.287629 plusOrMinus 0.0000005)
   }
 
   it should "calculate correct cost with regularization" in {
-    new J(X,numbersToBitmaps(y, 10), layerDim)(lambda = 1).cost(thetas) should be (0.383770 plusOrMinus 0.0000005)
+    new J(X,Y, layerDim)(lambda = 1).cost(thetas) should be (0.383770 plusOrMinus 0.0000005)
 
   }
 
@@ -55,12 +56,6 @@ class Ex4Test extends FlatSpec with ShouldMatchers{
 
     }
     RowVector(numgrad)
-  }
-
-  def numbersToBitmaps(y:Vector, labels:Int) : Matrix = {
-    val mapping = diag(ones(1, labels))
-
-    new Matrix(for(row<-y.items; i = row(0).toInt) yield mapping.row(i-1))
   }
 
 
@@ -102,7 +97,7 @@ class Ex4Test extends FlatSpec with ShouldMatchers{
     val y = Vector(2, 3, 1, 2, 3)
     val thetas = T1.flatten :: T2.flatten
 
-    val j = new J(X, numbersToBitmaps(y, 3), List((5,4), (3,6)))(lambda = 0)
+    val j = new J(X, Ex4.numbersToBitmaps(y, 3), List((5,4), (3,6)))(lambda = 0)
     val grad = j.gradient(thetas)
     val num_grad = numericGradient(j.cost _, thetas)
     norm2(num_grad - grad)/norm2(num_grad + grad) should be < 1e-9

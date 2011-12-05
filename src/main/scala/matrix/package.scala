@@ -2,7 +2,7 @@ import java.util.UUID
 
 package object matrix {
   def sqrt[T <: MatrixLike[_]](m : MatrixLike[T]) =  m.apply(math.sqrt _)
-  @inline def log[T <: MatrixLike[_]](m : MatrixLike[T])  =  m.apply(math.log _)
+  def log[T <: MatrixLike[_]](m : MatrixLike[T])  =  m.apply(math.log _)
   def √[T <: MatrixLike[_]](m : MatrixLike[T]) =  sqrt(m)
   def sum(m : Matrix) : RowVector  =  m.sum
   def ∑(m : Matrix) =  sum(m)
@@ -12,12 +12,14 @@ package object matrix {
   def ∑(m : Vector) =  sum(m)
 
 
-  def std(m : Matrix) : RowVector = sqrt(sum(m @^ 2) / m.rows)
+  def std(m : Matrix) : RowVector = sqrt(sum(m @^ 2) / m.row_count)
   def diag(m : RowVector) : Matrix = m.diag
   def ones(rows:Int, cols:Int) =  new Matrix(Array.fill(rows, cols)(1.0))
   def zeros(rows:Int, cols:Int) =  new Matrix(Array.fill(rows, cols)(0.0))
   def norm2(m: RowVector) = math.sqrt(sum(m@^2))
 
+  def sigmoid(m:Matrix) = m(x => 1/(1+math.exp(-x)))
+  def round(m:Matrix) = m(math.round(_).toDouble)
 
 
   def random(rows: Int, columns: Int, range : Double): Matrix = {

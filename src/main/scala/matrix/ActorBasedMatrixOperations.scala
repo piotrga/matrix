@@ -1,10 +1,8 @@
 package matrix
 
 import akka.routing._
-import java.util.concurrent.atomic.AtomicInteger
 import akka.actor.Actor._
-import java.util.concurrent.{Callable, Executors}
-import akka.dispatch.{Future, Futures, Dispatchers}
+import akka.dispatch.Future
 
 
 object ActorBasedMatrixOperations extends MatrixOperations{

@@ -3,10 +3,6 @@ package matrix
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 
-//import org.junit.runner.RunWith
-//import org.scalatest.junit.JUnitRunner
-//
-//@RunWith(classOf[JUnitRunner])
 class MatrixApplyPerformanceTest extends ShouldMatchers with FlatSpec {
   val X = random(5000, 100, 1)
   val rand = X.items.flatten

@@ -1,7 +1,6 @@
 package matrix
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException
-import akka.dispatch.Future
 
 
 trait MatrixOperations{
@@ -15,7 +14,7 @@ object MyMatrixOperations extends MatrixOperations{
 
   import math.{min,  max, round}
 
-//  override def apply(items: Array[Array[Double]], f: (Double) => Double) = items.par.map(_.map(f(_))).toArray
+  //  override def apply(items: Array[Array[Double]], f: (Double) => Double) = items.par.map(_.map(f(_))).toArray
   override def apply(items: Array[Array[Double]], f: (Double) => Double) = {
     val rows = items.length
     val cols = items(0).length
@@ -23,22 +22,22 @@ object MyMatrixOperations extends MatrixOperations{
     val res = Array.ofDim[Double](rows, cols)
     @inline def distribute_by_rows = {
       (0 until rows).par.foreach { row =>
-          var col = 0
-          while (col < cols) {
-            res(row)(col) = f(items(row)(col))
-            col += 1
-          }
+        var col = 0
+        while (col < cols) {
+          res(row)(col) = f(items(row)(col))
+          col += 1
+        }
       }
       res
     }
 
     @inline def distribute_by_cols ={
       (0 until cols).par.foreach { col =>
-          var row = 0
-          while (row < rows) {
-            res(row)(col) = f(items(row)(col))
-            row += 1
-          }
+        var row = 0
+        while (row < rows) {
+          res(row)(col) = f(items(row)(col))
+          row += 1
+        }
       }
       res
     }
@@ -87,14 +86,16 @@ object MyMatrixOperations extends MatrixOperations{
     }
 
     (0 to PARTITIONS).par.map( i =>
-        singleThreadedMultiplicationFAST((i * PARTITION_ROWS), (min(M1_ROWS, (i + 1) * PARTITION_ROWS)))
-      )
+      singleThreadedMultiplicationFAST((i * PARTITION_ROWS), (min(M1_ROWS, (i + 1) * PARTITION_ROWS)))
+    )
 
     res
 
   }
 
 }
+
+
 
 object ApacheMatrixOperations extends MatrixOperations{
   override def multiply(m1:Array[Array[Double]], m2:Array[Array[Double]]): Array[Array[Double]] = {

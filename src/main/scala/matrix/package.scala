@@ -79,13 +79,10 @@ package object matrix {
   }
 
   def benchmark(iterations:Int)( block : => Unit):Double = {
-    val id = UUID.randomUUID()
-    println("Starting "+id)
     val start = System.nanoTime()
     var i = 0
     while(i<iterations) {block;i+=1}
     val res = ((System.nanoTime() - start) /1000000).toDouble/ iterations
-    println("Finished "+id)
     res
   }
 

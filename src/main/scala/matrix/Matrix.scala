@@ -33,7 +33,7 @@ object Multiply{
 
 }
 
-abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(implicit operations : MatrixOperations = MyMatrixOperations){
+abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(implicit operations : MatrixOperations = ActorBasedMatrixOperations){
 
   def flatten : RowVector = RowVector(items.transpose.flatten)
 

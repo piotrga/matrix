@@ -33,8 +33,8 @@ object Multiply{
 
 }
 
-abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(implicit operations : MatrixOperations = ActorBasedMatrixOperations){
-
+abstract class MatrixLike(val items:Array[Array[Double]])(implicit operations : MatrixOperations = ActorBasedMatrixOperations){
+  type Repr <: MatrixLike
   def flatten : RowVector = RowVector(items.transpose.flatten)
 
   def rows = items.map(RowVector(_:_*))
@@ -62,26 +62,26 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
 
 
 
-  @inline def apply(f : Double => Double) : Repr = instance(fast_apply(items, f) )
+  @inline def apply(f : Double => Double) = instance(fast_apply(items, f) )
 
   @inline def instance(items: Array[Array[Double]]) : Repr
 
-  def +(m : MatrixLike[Repr]) = combine(m, _+_)
-  def -(m : MatrixLike[Repr]) = combine(m, _-_)
-  def @*(m : MatrixLike[Repr]) = combine(m, _*_)
-  def @/(m : MatrixLike[Repr]) = combine(m, _/_)
+  def +(m : MatrixLike) = combine(m, _+_)
+  def -(m : MatrixLike) = combine(m, _-_)
+  def @*(m : MatrixLike) = combine(m, _*_)
+  def @/(m : MatrixLike) = combine(m, _/_)
 
 
   @inline private def combine(v1:Array[Double], v2:Array[Double])(fun:(Double,Double) => Double ) : Array[Double] = v1.zip(v2).par.map({case(x,y)=>fun(x,y)}).toArray
 
 
-  @inline def combine(m:MatrixLike[Repr], fun:(Double,Double) => Double) : Repr = {
+  @inline def combine(m:MatrixLike, fun:(Double,Double) => Double) : Repr = {
     if (m.row_count != row_count || m.cols != cols) throw new Exception("Not the same matrix sizes %dx%d != %dx%d".format(row_count,cols, m.row_count,m.cols ))
     val rows_combined = items.zip(m.items)
     instance(rows_combined.par.map{case (row1, row2) => combine(row1,row2)(fun)}.toArray)
   }
 
-  def multiply(m: MatrixLike[_]) : Array[Array[Double]] = {
+  def multiply(m: MatrixLike) : Array[Array[Double]] = {
     if (cols != m.row_count) throw new Exception("Can not multipy matrix %dx%d by %dx%d".format(row_count, cols, m.row_count, m.cols))
     operations.multiply(items, m.items)
   }
@@ -103,7 +103,7 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
   def mkString = "Matrix(%dx%d):\n%s\n".format(row_count,cols, items.map(_.map(magicFormat).mkString(" ")).mkString("\n"))
 
   override def equals(p1: Any) = p1 match{
-    case m : MatrixLike[_] => items.deep.equals(m.items.deep)
+    case m : MatrixLike => items.deep.equals(m.items.deep)
     case _ => false
   }
 
@@ -116,7 +116,9 @@ abstract class MatrixLike[Repr <:MatrixLike[_]](val items:Array[Array[Double]])(
 }
 
 
-class Matrix(items:Array[Array[Double]])extends MatrixLike[Matrix](items){
+class Matrix(items:Array[Array[Double]]) extends MatrixLike(items){
+  type Repr = Matrix
+
   def sum : RowVector = row_count match {
     case 1 => RowVector(items(0).reduce(_+_))
     case _ => RowVector(items.transpose.par.map(col => col.reduce(_+_)).toArray)
@@ -130,12 +132,13 @@ class Matrix(items:Array[Array[Double]])extends MatrixLike[Matrix](items){
   def T = new Matrix(items.transpose)
   def ᵀ = this.T
   def ::(scalar : Double) : Matrix = new Matrix(items.par.map(scalar +: _).toArray)
-  def ::(m : MatrixLike[_]) : Matrix = new Matrix(m.items.par.zip(items).map{case (r1, r2) => r1 ++ r2}.toArray)
+  def ::(m : MatrixLike) : Matrix = new Matrix(m.items.par.zip(items).map{case (r1, r2) => r1 ++ r2}.toArray)
 
   def instance(items: Array[Array[Double]]) = new Matrix(items)
 }
 
-class Vector(items:Array[Array[Double]]) extends MatrixLike[Vector](items){
+class Vector(items:Array[Array[Double]]) extends MatrixLike(items){
+  type Repr = Vector
   if (this.cols != 1) throw new Exception("Vector can only have one column but it has %d!" format(this.cols) )
   def T : RowVector = new RowVector(items.transpose)
   def ᵀ = this.T
@@ -143,12 +146,13 @@ class Vector(items:Array[Array[Double]]) extends MatrixLike[Vector](items){
 
 
   def ::(scalar : Double) : Matrix = scalar :: new Matrix(items)
-  def ::(m : MatrixLike[_]) : Matrix = m :: new Matrix(items)
+  def ::(m : MatrixLike) : Matrix = m :: new Matrix(items)
 
   def instance(items: Array[Array[Double]]) = new Vector(items)
 }
 
-class RowVector(items:Array[Array[Double]]) extends MatrixLike[RowVector](items){
+class RowVector(items:Array[Array[Double]]) extends MatrixLike(items){
+  type Repr = RowVector
   if (this.row_count != 1) throw new Exception("RowVector can only have one row but it has %d!" format(this.row_count) )
 
   def T : Vector = new Vector(items.transpose)
@@ -220,15 +224,11 @@ object Matrix{
 
   implicit def arrayToVector(items:Array[Double]): Vector = Vector(items:_*)
   implicit def arrayToRowVector(items:Array[Double]): RowVector = RowVector(items:_*)
-  implicit def arrayToMatrixLikeVector(items:Array[Double]): MatrixLike[Vector]  = Vector(items:_*)
 
   //  implicit def scalarToMatrix(scalar:Double): Matrix = new Matrix(Array(Array(scalar)))
-  implicit def intArrayToMatrixVector(items:Array[Int]): MatrixLike[Vector] = Vector(items.map(_.toDouble):_*)
-  implicit def intArrayToVector(items:Array[Int]): Vector = Vector(items.map(_.toDouble):_*)
+  implicit def intArrayToMatrixVector(items:Array[Int]) = Vector(items.map(_.toDouble):_*)
+  implicit def intArrayToVector(items:Array[Int]) = Vector(items.map(_.toDouble):_*)
   implicit def seqIntToSeqDouble(s:Seq[Int]):Seq[Double] = s.map(_.toDouble)
-
-
-
 
 }
 

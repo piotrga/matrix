@@ -1,9 +1,9 @@
 import java.util.UUID
 
 package object matrix {
-  def sqrt[T <: MatrixLike[_]](m : MatrixLike[T]) =  m.apply(math.sqrt _)
-  def log[T <: MatrixLike[_]](m : MatrixLike[T])  =  m.apply(math.log _)
-  def √[T <: MatrixLike[_]](m : MatrixLike[T]) =  sqrt(m)
+  def sqrt[T <: MatrixLike](m : T): T#Repr =  m.apply(math.sqrt _)
+  def log[T <: MatrixLike](m : T) :T#Repr =  m.apply(math.log _)
+  def √[T <: MatrixLike](m : T) =  sqrt(m)
   def sum(m : Matrix) : RowVector  =  m.sum
   def ∑(m : Matrix) =  sum(m)
   def sum(m : RowVector) : Double =  m.sum
@@ -18,8 +18,8 @@ package object matrix {
   def zeros(rows:Int, cols:Int) =  new Matrix(Array.fill(rows, cols)(0.0))
   def norm2(m: RowVector) = math.sqrt(sum(m@^2))
 
-  def sigmoid(m:Matrix) = m(x => 1/(1+math.exp(-x)))
-  def round(m:Matrix) = m(math.round(_).toDouble)
+  def sigmoid[T <: MatrixLike](m : T) : T#Repr = m(x => 1/(1+math.exp(-x)))
+  def round[T<:MatrixLike](m:T) : T#Repr = m(math.round(_).toDouble)
 
 
   def random(rows: Int, columns: Int, range : Double): Matrix = {
@@ -29,11 +29,10 @@ package object matrix {
   }
 
   class MatrixOps(d:Double){
-    def *(m:Matrix) = m * d
-    def /(m: MatrixLike[_]) = m(d/_)
-    def +(m:MatrixLike[_]) = m + d
-    def -(m:MatrixLike[_]) = m(d - _)
-    def -(m:Matrix) = m(d - _)
+    def *[T<:MatrixLike](m:T) : T#Repr = m * d
+    def /[T<:MatrixLike](m:T) : T#Repr = m(d/_)
+    def +[T<:MatrixLike](m:T) : T#Repr = m + d
+    def -[T<:MatrixLike](m:T) : T#Repr = m(d - _)
   }
 
 

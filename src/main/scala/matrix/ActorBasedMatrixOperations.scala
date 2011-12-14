@@ -1,8 +1,10 @@
 package matrix
 
+import utils._
 import akka.routing._
 import akka.actor.Actor._
-import akka.dispatch.Future
+import akka.dispatch.{MessageDispatcher, Future}
+import akka.actor.Actor
 
 
 object ActorBasedMatrixOperations extends MatrixOperations{
@@ -11,12 +13,13 @@ object ActorBasedMatrixOperations extends MatrixOperations{
 
   override def apply(items: Array[Array[Double]], f: (Double) => Double) = MyMatrixOperations.apply(items, f)
 
-  case class MultiplyMatrix(m1:Array[Array[Double]], m2:Array[Array[Double]])
+  case class MultiplyMatrix(m1:Seq[Array[Double]], m2:Array[Array[Double]])
   case class Apply(m1:Array[Array[Double]], f :Double=>Double)
 
   //
 
-  class Multiplyer extends akka.actor.Actor{
+  class Multiplier(dispatcher: MessageDispatcher) extends akka.actor.Actor{
+    self.setDispatcher(dispatcher)
     protected def receive = {
       case MultiplyMatrix(m1, m2) => self reply singleThreadedMultiplicationFAST (m1,m2)
       case Apply(m1, f) => self reply MyMatrixOperations.apply (m1, f)
@@ -24,7 +27,7 @@ object ActorBasedMatrixOperations extends MatrixOperations{
   }
 
 
-  @inline def singleThreadedMultiplicationFAST(m1:Array[Array[Double]], m2:Array[Array[Double]] ) ={
+  @inline def singleThreadedMultiplicationFAST(m1:Seq[Array[Double]], m2:Array[Array[Double]] ) ={
     val res =  Array.ofDim[Double](m1.length, m2(0).length)
     val M1_COLS = m1(0).length
     val M1_ROWS = m1.length
@@ -50,7 +53,25 @@ object ActorBasedMatrixOperations extends MatrixOperations{
     res
   }
 
-  lazy val multiplyer = Routing.loadBalancerActor(new CyclicIterator(List.fill(32)(actorOf[Multiplyer].start()))).start()
+  lazy val multiplier = {
+    import akka.util.duration._
+    val daemonic_dispatcher = akka.dispatch.Dispatchers.newExecutorBasedEventDrivenDispatcher("multipliers")
+      .setCorePoolSize(8)
+      .setMaxPoolSize(32)
+      .setKeepAliveTime(1 second)
+      .setDaemonic(true)
+      .build
+
+    val multipliers = List.fill(32)(actorOf(new Multiplier(daemonic_dispatcher)).start())
+    val balancer = actorOf(new Actor with LoadBalancer {
+      self.setDispatcher(daemonic_dispatcher)
+      val seq = new CyclicIterator(multipliers)
+    }).start()
+
+
+    Runtime.getRuntime.addShutdownHook( balancer+:multipliers foreach(_.stop) )
+    balancer
+  }
 
   override def multiply(m1: Array[Array[Double]], m2: Array[Array[Double]]) :  Array[Array[Double]] = {
     val M1_COLS = m1(0).length
@@ -63,7 +84,7 @@ object ActorBasedMatrixOperations extends MatrixOperations{
 
     Future.traverse((0 until M1_ROWS).grouped(PARTITION_ROWS).toTraversable){ partition_range =>
       val slice = m1.slice(partition_range.head, partition_range.last+1)
-      (multiplyer ? MultiplyMatrix(slice, m2)).mapTo[Array[Array[Double]]]
+      (multiplier ? MultiplyMatrix(slice, m2)).mapTo[Array[Array[Double]]]
     }.get.reduce(_++_)
   }
 

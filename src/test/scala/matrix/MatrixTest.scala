@@ -4,9 +4,7 @@ package matrix
 import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
 import scala.math.Pi
-import matrix.Matrix._
-import io.Source
-import java.io.{PrintWriter, FileOutputStream, File}
+import java.io.{PrintWriter, File}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 

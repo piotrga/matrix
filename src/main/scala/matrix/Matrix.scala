@@ -6,8 +6,8 @@ import io.Source
 import annotation.tailrec
 import java.io.{File, PrintWriter}
 
-trait Multiply[M1, M2, DST]{
-  def apply(m1:M1,  m2:M2) : DST
+trait Multiply[M1, M2, RESULT]{
+  def apply(m1:M1,  m2:M2) : RESULT
 }
 
 object Multiply{
@@ -35,7 +35,7 @@ object Multiply{
 
 abstract class MatrixLike(val items:Array[Array[Double]])(implicit operations : MatrixOperations = ActorBasedMatrixOperations){
   type Repr <: MatrixLike
-  def flatten : RowVector = RowVector(items.transpose.flatten)
+
 
   def rows = items.map(RowVector(_:_*))
   lazy val row_count = items.length
@@ -49,8 +49,9 @@ abstract class MatrixLike(val items:Array[Array[Double]])(implicit operations : 
   def *[A, B](m: A)(implicit multiply : Multiply[Repr, A,  B])  = multiply(this.asInstanceOf[Repr], m)
 
   def unary_-() = apply(-_)
+
   def *(scalar:Double) =  apply(_ * scalar)
-  def +(scalar:Double) =  apply(_ + scalar)
+  def +(scalar:Double) =  apply(_ + scalar  )
   def -(scalar:Double) =  apply(_ - scalar)
   def /(scalar:Double) =  apply(_ / scalar)
   def /:(scalar:Double) = apply(scalar / _)
@@ -58,18 +59,15 @@ abstract class MatrixLike(val items:Array[Array[Double]])(implicit operations : 
   def +:(scalar:Double) = this + scalar
   def -:(scalar:Double) = apply(scalar - _)
   def @^(scalar:Double) = apply(pow (_, scalar))
-
-
-
-
   @inline def apply(f : Double => Double) = instance(fast_apply(items, f) )
 
-  @inline def instance(items: Array[Array[Double]]) : Repr
+  @inline protected def instance(items: Array[Array[Double]]) : Repr
 
   def +(m : MatrixLike) = combine(m, _+_)
   def -(m : MatrixLike) = combine(m, _-_)
   def @*(m : MatrixLike) = combine(m, _*_)
   def @/(m : MatrixLike) = combine(m, _/_)
+  def flatten : RowVector = RowVector(items.transpose.flatten)
 
 
   @inline private def combine(v1:Array[Double], v2:Array[Double])(fun:(Double,Double) => Double ) : Array[Double] = v1.zip(v2).par.map({case(x,y)=>fun(x,y)}).toArray
@@ -106,6 +104,9 @@ abstract class MatrixLike(val items:Array[Array[Double]])(implicit operations : 
     case m : MatrixLike => items.deep.equals(m.items.deep)
     case _ => false
   }
+
+
+  override def hashCode = throw new Error("Are you nuts? Hashcode of a matrix! Really?")
 
   def saveToFile(filePath:String) = {
     val p = new PrintWriter(new File(filePath))
@@ -201,10 +202,6 @@ object RowVector{
 }
 
 object Matrix{
-
-  /*
- This function might look complicated, but I had to sacrifice readability for efficiency here.
-  */
 
   def fromFile(filename:String) = {
     def readMatrix(filePath: String): Array[Array[Double]] = {

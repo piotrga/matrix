@@ -58,7 +58,7 @@ object MyMatrixOperations extends MatrixOperations{
 
     val N = M1_ROWS * M1_COLS * M2_COLS
     var PARTITIONS : Int = max(1, min(M1_ROWS, min(N / 20000, 256)))
-    val PARTITION_ROWS : Int = round(M1_ROWS.toDouble/PARTITIONS).toInt
+    val PARTITION_ROWS : Int = round( M1_ROWS.toDouble/PARTITIONS).toInt
 
     PARTITIONS = M1_ROWS/PARTITION_ROWS
 

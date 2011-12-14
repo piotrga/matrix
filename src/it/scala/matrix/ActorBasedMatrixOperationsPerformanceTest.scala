@@ -27,9 +27,9 @@ class ActorBasedMatrixOperationsPerformanceTest extends FlatSpec with ShouldMatc
 
   "ActorBasedMatrix multiplication" should "be comparable to parallel collection multiplication" in {
 
-    val actor = runMultiplicationTest(ActorBasedMatrixOperations)
-    val my = runMultiplicationTest(MyMatrixOperations)
+      val actor = runMultiplicationTest(ActorBasedMatrixOperations)
+      val my = runMultiplicationTest(MyMatrixOperations)
 
-    actor.toDouble/my should be < 1.2
-  }
+      actor.toDouble / my should be < 1.2
+    }
 }

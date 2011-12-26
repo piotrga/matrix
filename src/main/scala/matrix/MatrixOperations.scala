@@ -12,7 +12,6 @@ trait MatrixOperations{
 
 object MyMatrixOperations extends MatrixOperations{
 
-  import math.{min,  max, round}
 
   //  override def apply(items: Array[Array[Double]], f: (Double) => Double) = items.par.map(_.map(f(_))).toArray
   override def apply(items: Array[Array[Double]], f: (Double) => Double) = {
@@ -56,14 +55,6 @@ object MyMatrixOperations extends MatrixOperations{
     val M1_ROWS = m1.length
     val M2_COLS = m2(0).length
 
-    val N = M1_ROWS * M1_COLS * M2_COLS
-    var PARTITIONS : Int = max(1, min(M1_ROWS, min(N / 20000, 256)))
-    val PARTITION_ROWS : Int = round( M1_ROWS.toDouble/PARTITIONS).toInt
-
-    PARTITIONS = M1_ROWS/PARTITION_ROWS
-
-
-
     @inline def singleThreadedMultiplicationFAST(start_row:Int,  end_row:Int) {
       var col, i  = 0
       var sum = 0.0
@@ -82,12 +73,11 @@ object MyMatrixOperations extends MatrixOperations{
 
         }; row += 1
       }
-
     }
 
-    (0 to PARTITIONS).par.map( i =>
-      singleThreadedMultiplicationFAST((i * PARTITION_ROWS), (min(M1_ROWS, (i + 1) * PARTITION_ROWS)))
-    )
+    (0 until M1_ROWS).par.foreach{ i =>
+      singleThreadedMultiplicationFAST(i, i+1)
+    }
 
     res
 

@@ -37,7 +37,7 @@ abstract class MatrixLike(val items:Array[Array[Double]])(implicit operations : 
   type Repr <: MatrixLike
 
 
-  def rows = items.map(RowVector(_:_*))
+  def rows = items.map(RowVector(_))
   lazy val row_count = items.length
   lazy val cols = if (items.length == 0) 0 else items(0).length
   lazy val fast_apply = if (row_count* cols > 20000) operations.apply _ else operations.small_apply _
@@ -50,6 +50,15 @@ abstract class MatrixLike(val items:Array[Array[Double]])(implicit operations : 
 
   def unary_-() = apply(-_)
 
+  /**
+   * Multiplies the matrix by the scalar, ie.
+   * <pre>
+   * scala> Matrix((1,2), (3,4)) * 2
+   * res1: matrix.Matrix = Matrix(2x2):
+   *        2         4
+   *        6         8
+   * </pre>
+   */
   def *(scalar:Double) =  apply(_ * scalar)
   def +(scalar:Double) =  apply(_ + scalar  )
   def -(scalar:Double) =  apply(_ - scalar)
@@ -172,6 +181,20 @@ class RowVector(items:Array[Array[Double]]) extends MatrixLike(items){
   def instance(items: Array[Array[Double]]) = new RowVector(items)
   def ::(scalar : Double) : RowVector = new RowVector(items.map(scalar +: _))
   def ::(r : RowVector) : RowVector = new RowVector(Array(r.items(0) ++ items(0)))
+
+  /**
+   * Converts RowVector to the list of matricies given the dimensions list. i.e.
+   * <pre>
+   * scala> RowVector(1,2,3,4,5,6,7,8,9).reshape((2,2),(1,5))
+   * res0: List[matrix.Matrix] =
+   * List(Matrix(2x2):
+   *        1         3
+   *        2         4
+   * , Matrix(1x5):
+   *         5         6         7         8         9
+   * )</pre>
+   *
+   **/
   def reshape(dimensions : (Int, Int)*) : List[Matrix] = {
     @tailrec def r(dimensions : List[(Int, Int)], data:Seq[Double], accumulator: List[Matrix]) : List[Matrix] = dimensions match{
       case (rows,cols) :: dimTail => {
@@ -197,7 +220,7 @@ object Vector{
 }
 
 object RowVector{
-  def apply(data:Double*) = new RowVector(Array(data.toArray))
+  def apply(data:Double, xs:Double*) = new RowVector(Array((data+:xs).toArray))
   def apply(data:Array[Double]) = new RowVector(Array(data))
 }
 
@@ -220,7 +243,7 @@ object Matrix{
   def apply(row: Double, rest:Double*) = new Matrix(Array((row+:rest).toArray))
 
   implicit def arrayToVector(items:Array[Double]): Vector = Vector(items:_*)
-  implicit def arrayToRowVector(items:Array[Double]): RowVector = RowVector(items:_*)
+  implicit def arrayToRowVector(items:Array[Double]): RowVector = RowVector(items)
 
   //  implicit def scalarToMatrix(scalar:Double): Matrix = new Matrix(Array(Array(scalar)))
   implicit def intArrayToMatrixVector(items:Array[Int]) = Vector(items.map(_.toDouble):_*)

@@ -1,5 +1,4 @@
-package application
-
+package sandbox
 
 trait X{
   val y : Int
